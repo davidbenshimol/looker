@@ -15,6 +15,11 @@ view: agg_web_general {
   measure: unique_visitors {
     description: "Sum Unique Visitors"
     type: sum
+    filters: {
+      field: period
+      value: "month"
+
+    }
     sql: ${TABLE}.unique_visitors ;;
   }
 
