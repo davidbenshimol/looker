@@ -12,6 +12,12 @@ view: agg_web_general {
     sql: ${TABLE}.period ;;
   }
 
+  dimension: is_last_day_of_month {
+
+    type: yesno
+    sql: EXTRACT( day from DATEADD(day,1,${dt_date}) ) = 1 ;;
+  }
+
   measure: unique_visitors {
     description: "Sum Unique Visitors"
     type: sum
