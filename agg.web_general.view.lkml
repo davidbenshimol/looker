@@ -6,16 +6,21 @@ view: agg_web_general {
 #    type: date
 #    sql: ${}${TABLE}.dt ;;
 #  }
+ dimension: Prev_Day {
+   type: date
+  sql:  ${TABLE}.dt -1;;
+ }
+
 
   dimension: period {
     type: string
     sql: ${TABLE}.period ;;
   }
 
-  dimension: is_last_day_of_month {
+  dimension:is_last_day_of_month {
 
     type: yesno
-    sql: EXTRACT( day from DATEADD(day,1,${dt_date}) ) = 1 ;;
+    sql: EXTRACT( day from DATEADD(day,1,${dt_date})+1 ) = 1 ;;
   }
 
   measure: unique_visitors {
@@ -24,7 +29,6 @@ view: agg_web_general {
     filters: {
       field: period
       value: "month"
-
     }
     sql: ${TABLE}.unique_visitors ;;
   }

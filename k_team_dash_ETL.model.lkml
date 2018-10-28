@@ -20,5 +20,10 @@ connection: "aws_redshift"
 include: "*.view.lkml"         # include all views in this project
 
 
-explore: agg_web_general {}
-explore: agg_app_general {}
+#explore: agg_web_general {}
+#explore: agg_app_general {}
+explore: web_general {}
+explore: app_general {}
+
+explore: web_daily_usage {}
+explore: app_daily_usage {}
