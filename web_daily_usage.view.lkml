@@ -1,128 +1,14 @@
 view: web_daily_usage {
   sql_table_name: agg.web_daily_usage ;;
 
-  filter: previous_period_filter {
-    type: date
-    description: "Use this filter for period analysis"
-  }
-
-  # For Amazon Redshift
-  # ${created_raw} is the timestamp dimension we are building our reporting period off of
-  dimension: previous_period {
-    type: string
-    description: "The reporting period as selected by the Previous Period Filter"
-    sql:
-      CASE
-        WHEN {% date_start previous_period_filter %} is not null AND {% date_end previous_period_filter %} is not null /* date ranges or in the past x days */
-          THEN
-            CASE
-              WHEN ${dt_raw} >=  {% date_start previous_period_filter %}
-                AND ${dt_raw} <= {% date_end previous_period_filter %}
-                THEN 'This Period'
-              WHEN ${dt_raw} >= DATEADD(day,-1*DATEDIFF(day,{% date_start previous_period_filter %}, {% date_end previous_period_filter %} ) + 1, DATEADD(day,-1,{% date_start previous_period_filter %} ) )
-                AND ${dt_raw} <= DATEADD(day,-1,{% date_start previous_period_filter %} )
-                THEN 'Previous Period'
-            END
-          END ;;
-  }
-
-  measure: count_domain_userid {
-    label: "Num Distinct Users"
-    type: count_distinct
-    sql: ${TABLE}.domain_userid ;;
-  }
-
-  measure: page_view {
-    label: "Sum Page Views"
-    type: sum
-    sql: ${TABLE}.page_view ;;
-    drill_fields: [dt_date,page_view]
-  }
-
-  measure: pages_viewed {
-    label: "Num Distinct Pages"
-    type: sum
-    sql: ${TABLE}.pages_viewed ;;
-  }
-
-  measure: sum_session_count {
-    label: "Num Sessions"
-    type: sum
-    value_format_name: decimal_0
-    sql: ${TABLE}.session_count ;;
-    drill_fields: [dt_raw,sum_session_count]
-  }
-
-  measure: sum_session_length {
-    label: "Session Length"
-    type: sum
-    value_format_name: decimal_1
-    sql: ${TABLE}.session_length ;;
-  }
-
-  measure: sum_bounce {
-    label: "Sum Bounce"
-    type: sum
-    value_format_name: decimal_1
-    sql: ${TABLE}.bounce ;;
-  }
-
-  measure: avg_time_page {
-    description: "Avg Time on Page"
+  dimension: articles_read {
     type: number
-    value_format_name: decimal_1
-    sql: ${sum_session_length} / nullif(${sum_session_count},0) / 60.00 ;;
-  }
-
-  measure: bounce_rate {
-    description: "Bounce Rate"
-    type: number
-    value_format_name: decimal_1
-    sql: ${sum_bounce} / nullif(${sum_session_count},0) / 60.00 ;;
-  }
-
-  measure: video_complete {
-    type: sum
-    sql: ${TABLE}.video_complete ;;
-  }
-
-  measure: video_pause {
-    type: sum
-    sql: ${TABLE}.video_pause ;;
-  }
-
-  measure: video_play {
-    type: sum
-    sql: ${TABLE}.video_play ;;
-  }
-
-  measure: articles_read {
-    type: sum
     sql: ${TABLE}.articles_read ;;
   }
 
-  dimension: pv_location {
-    type: location
-    sql_latitude:${TABLE}.geo_latitude ;;
-    sql_longitude:${TABLE}.geo_longitude ;;
-  }
-
-  dimension: geo_city {
-    type: string
-    sql: ${TABLE}.geo_city ;;
-    drill_fields: [pv_location]
-  }
-
-  dimension: geo_country {
-    map_layer_name: countries
-    type: string
-    sql: ${TABLE}.geo_country ;;
-    drill_fields: [geo_city,pv_location]
-  }
-
-  dimension: geo_timezone {
-    type: string
-    sql: ${TABLE}.geo_timezone ;;
+  dimension: bounce {
+    type: number
+    sql: ${TABLE}.bounce ;;
   }
 
   dimension: br_lang {
@@ -140,18 +26,18 @@ view: web_daily_usage {
     sql: ${TABLE}.br_version ;;
   }
 
-  measure: breadcrumb_click {
-    type: sum
+  dimension: breadcrumb_click {
+    type: number
     sql: ${TABLE}.breadcrumb_click ;;
   }
 
-  measure: completed_reading {
-    type: sum
+  dimension: completed_reading {
+    type: number
     sql: ${TABLE}.completed_reading ;;
   }
 
-  measure: cta_click {
-    type: sum
+  dimension: cta_click {
+    type: number
     sql: ${TABLE}.cta_click ;;
   }
 
@@ -195,7 +81,7 @@ view: web_daily_usage {
     sql: ${TABLE}.dvce_type ;;
   }
 
-  measure: editors_choice_click {
+  dimension: editors_choice_click {
     type: number
     sql: ${TABLE}.editors_choice_click ;;
   }
@@ -235,22 +121,47 @@ view: web_daily_usage {
     sql: ${TABLE}.first_utm_source ;;
   }
 
-  measure: go_click {
+  dimension: geo_city {
+    type: string
+    sql: ${TABLE}.geo_city ;;
+  }
+
+  dimension: geo_country {
+    type: string
+    sql: ${TABLE}.geo_country ;;
+  }
+
+  dimension: geo_latitude {
+    type: number
+    sql: ${TABLE}.geo_latitude ;;
+  }
+
+  dimension: geo_longitude {
+    type: number
+    sql: ${TABLE}.geo_longitude ;;
+  }
+
+  dimension: geo_timezone {
+    type: string
+    sql: ${TABLE}.geo_timezone ;;
+  }
+
+  dimension: go_click {
     type: number
     sql: ${TABLE}.go_click ;;
   }
 
-  measure: label_click {
+  dimension: label_click {
     type: number
     sql: ${TABLE}.label_click ;;
   }
 
-  measure: link_click {
+  dimension: link_click {
     type: number
     sql: ${TABLE}.link_click ;;
   }
 
-  measure: locations_click {
+  dimension: locations_click {
     type: number
     sql: ${TABLE}.locations_click ;;
   }
@@ -265,62 +176,82 @@ view: web_daily_usage {
     sql: ${TABLE}.os_name ;;
   }
 
+  dimension: page_view {
+    type: number
+    sql: ${TABLE}.page_view ;;
+  }
+
+  dimension: pages_viewed {
+    type: number
+    sql: ${TABLE}.pages_viewed ;;
+  }
+
   dimension: platform {
     type: string
     sql: ${TABLE}.platform ;;
   }
 
-  measure: recommended_click {
+  dimension: recommended_click {
     type: number
     sql: ${TABLE}.recommended_click ;;
   }
 
-  measure: related_click {
+  dimension: related_click {
     type: number
     sql: ${TABLE}.related_click ;;
   }
 
-  measure: related_in_view {
+  dimension: related_in_view {
     type: number
     sql: ${TABLE}.related_in_view ;;
   }
 
-  measure: search {
+  dimension: search {
     type: number
     sql: ${TABLE}.search ;;
   }
 
-  measure: share_click {
+  dimension: session_count {
+    type: number
+    sql: ${TABLE}.session_count ;;
+  }
+
+  dimension: session_length {
+    type: number
+    sql: ${TABLE}.session_length ;;
+  }
+
+  dimension: share_click {
     type: number
     sql: ${TABLE}.share_click ;;
   }
 
-  measure: share_email {
+  dimension: share_email {
     type: number
     sql: ${TABLE}.share_email ;;
   }
 
-  measure: share_facebook {
+  dimension: share_facebook {
     type: number
     sql: ${TABLE}.share_facebook ;;
   }
 
-  measure: share_pintrest {
+  dimension: share_pintrest {
     type: number
     sql: ${TABLE}.share_pintrest ;;
   }
 
-  measure: share_twitter {
+  dimension: share_twitter {
     type: number
     sql: ${TABLE}.share_twitter ;;
   }
 
-  measure: share_whatsapp {
+  dimension: share_whatsapp {
     type: number
     sql: ${TABLE}.share_whatsapp ;;
   }
 
-  measure: trending_click {
+  dimension: trending_click {
     type: number
     sql: ${TABLE}.trending_click ;;
   }
@@ -330,8 +261,32 @@ view: web_daily_usage {
     sql: ${TABLE}.user_agent ;;
   }
 
-  measure: count {
-    type: count
-    drill_fields: [device_marketing_name, os_name, br_name]
+  dimension: video_complete {
+    type: number
+    sql: ${TABLE}.video_complete ;;
   }
+
+  dimension: video_pause {
+    type: number
+    sql: ${TABLE}.video_pause ;;
+  }
+
+  dimension: video_play {
+    type: number
+    sql: ${TABLE}.video_play ;;
+  }
+
+
+  measure: count_users {
+    type: count_distinct
+    sql: ${TABLE}.domain_userid ;;
+  }
+
+  measure: Time_On_Site {
+
+    type: average
+    value_format:"0.00"
+    sql: ${TABLE}.session_length /60 ;;
+  }
+
 }
